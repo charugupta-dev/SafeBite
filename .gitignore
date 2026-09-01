@@ -1,0 +1,24 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Gradio / app temp files
+flagged/
+
+# VS Code / IDEs
+.vscode/
+.idea/
+.DS_Store
+*.log
