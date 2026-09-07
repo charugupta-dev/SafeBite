@@ -6,7 +6,10 @@ from openai import OpenAI
 
 from scraper import fetch_website_contents
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+env_path = Path(__file__).resolve().parent / ".env"
+if not env_path.exists():
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 if os.getenv("GROQ_API_KEY"):
     client = OpenAI(

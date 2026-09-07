@@ -4,7 +4,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+env_path = Path(__file__).resolve().parent / ".env"
+if not env_path.exists():
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 api_key = os.getenv("GROQ_API_KEY")
 if not api_key:
