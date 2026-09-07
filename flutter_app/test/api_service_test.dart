@@ -30,4 +30,40 @@ void main() {
       expect(result.summary, '');
     });
   });
+
+  group('AgentResult', () {
+    test('correctly decodes agent response with tools', () {
+      const sampleJson = '''
+      {
+        "success": true,
+        "reply": "The bag is ₹1420.",
+        "tools_used": ["get_price(bag)"]
+      }
+      ''';
+
+      final decoded = jsonDecode(sampleJson) as Map<String, dynamic>;
+      final result = AgentResult.fromJson(decoded);
+
+      expect(result.success, isTrue);
+      expect(result.reply, 'The bag is ₹1420.');
+      expect(result.toolsUsed, ['get_price(bag)']);
+    });
+
+    test('correctly decodes agent response without tools', () {
+      const sampleJson = '''
+      {
+        "success": true,
+        "reply": "Hello, how can I help?",
+        "tools_used": []
+      }
+      ''';
+
+      final decoded = jsonDecode(sampleJson) as Map<String, dynamic>;
+      final result = AgentResult.fromJson(decoded);
+
+      expect(result.success, isTrue);
+      expect(result.reply, 'Hello, how can I help?');
+      expect(result.toolsUsed, isEmpty);
+    });
+  });
 }

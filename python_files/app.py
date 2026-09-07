@@ -1,6 +1,6 @@
 # pip install gradio
 import gradio as gr
-from summariser import summarize
+from python_files.summariser import summarize
 
 gr.Interface(
     fn=summarize,                                  # your function

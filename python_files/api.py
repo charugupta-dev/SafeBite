@@ -2,9 +2,18 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from summariser import summarize
 
-app = FastAPI(title="AI Website Summarizer API", version="1.0.0")
+try:
+    from summariser import summarize
+except ImportError:
+    from python_files.summariser import summarize
+
+try:
+    from agent import agent
+except ImportError:
+    from python_files.agent import agent
+
+app = FastAPI(title="AI Lab API", version="1.0.0")
 
 # Enable CORS for local Flutter / Web / Mobile access
 app.add_middleware(
@@ -24,6 +33,16 @@ class SummarizeResponse(BaseModel):
     success: bool
     url: str
     summary: str
+
+
+class AgentRequest(BaseModel):
+    message: str
+
+
+class AgentResponse(BaseModel):
+    success: bool
+    reply: str
+    tools_used: list[str] = []
 
 
 @app.get("/health")
@@ -46,6 +65,23 @@ def summarize_endpoint(req: SummarizeRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI Summarization failed: {str(e)}")
+
+
+@app.post("/agent", response_model=AgentResponse)
+def agent_endpoint(req: AgentRequest):
+    message = req.message.strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+    try:
+        data = agent(message, return_metadata=True)
+        return AgentResponse(
+            success=True,
+            reply=data.get("content") or "",
+            tools_used=data.get("tools_used") or [],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent failed: {str(e)}")
 
 
 if __name__ == "__main__":

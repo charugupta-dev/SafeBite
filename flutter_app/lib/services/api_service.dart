@@ -22,6 +22,27 @@ class SummarizeResult {
   }
 }
 
+class AgentResult {
+  final bool success;
+  final String reply;
+  final List<String> toolsUsed;
+
+  AgentResult({
+    required this.success,
+    required this.reply,
+    required this.toolsUsed,
+  });
+
+  factory AgentResult.fromJson(Map<String, dynamic> json) {
+    final rawTools = json['tools_used'] as List<dynamic>? ?? [];
+    return AgentResult(
+      success: json['success'] as bool? ?? true,
+      reply: json['reply'] as String? ?? '',
+      toolsUsed: rawTools.map((e) => e.toString()).toList(),
+    );
+  }
+}
+
 class ApiService {
   // iOS Simulator maps directly to Mac localhost (127.0.0.1)
   static const String defaultBaseUrl = 'http://127.0.0.1:8000';
@@ -53,6 +74,50 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return SummarizeResult.fromJson(data);
+      } else {
+        String errorMessage = 'Server error (${response.statusCode})';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData is Map && errorData.containsKey('detail')) {
+            errorMessage = errorData['detail'].toString();
+          }
+        } catch (_) {}
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      throw Exception(
+        'Cannot reach Python backend server at $baseUrl.\n\nPlease start the server in terminal:\ncd /Users/charu/Desktop/AIEngineeringLearning/python_files\nuvicorn api:app --reload --host 127.0.0.1 --port 8000',
+      );
+    } on http.ClientException {
+      throw Exception(
+        'Connection failed. Please ensure the Python API server is running on port 8000.',
+      );
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('An unexpected error occurred: $e');
+    }
+  }
+
+  Future<AgentResult> askAgent(String message) async {
+    final cleanMessage = message.trim();
+    if (cleanMessage.isEmpty) {
+      throw Exception('Message cannot be empty');
+    }
+
+    final endpoint = Uri.parse('$baseUrl/agent');
+
+    try {
+      final response = await client
+          .post(
+            endpoint,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'message': cleanMessage}),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return AgentResult.fromJson(data);
       } else {
         String errorMessage = 'Server error (${response.statusCode})';
         try {
