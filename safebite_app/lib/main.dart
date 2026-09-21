@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'views/home_screen.dart';
 
 void main() {
-  runApp(const SafebiteApp());
+  runApp(
+    const ProviderScope(
+      child: SafebiteApp(),
+    ),
+  );
 }
 
 class SafebiteApp extends StatelessWidget {
@@ -16,7 +21,7 @@ class SafebiteApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF10B981), // Green for health/safety
+          seedColor: const Color(0xFF10B981),
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),

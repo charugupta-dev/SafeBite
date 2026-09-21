@@ -1,50 +1,16 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../viewmodels/home_viewmodel.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _foodController = TextEditingController();
-  final ApiService _apiService = ApiService();
-
-  String _selectedTarget = 'baby'; // default target
-  bool _isLoading = false;
-  String _verdict = '';
-  String _error = '';
-
-  Future<void> _checkFood() async {
-    if (_foodController.text.trim().isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-      _verdict = '';
-      _error = '';
-    });
-
-    try {
-      final result = await _apiService.checkFood(
-        _foodController.text,
-        _selectedTarget,
-      );
-      
-      setState(() {
-        _verdict = result.verdict;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -52,8 +18,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void _onAnalyze() {
+    final food = _foodController.text;
+    ref.read(homeViewModelProvider.notifier).checkFood(food);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final scanState = ref.watch(homeViewModelProvider);
+    final viewModel = ref.read(homeViewModelProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -74,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -96,10 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // Target Selection
+
+              // Target Selection (Profile)
               DropdownButtonFormField<String>(
-                value: _selectedTarget,
+                initialValue: scanState.selectedTarget,
                 decoration: InputDecoration(
                   labelText: 'Who is eating?',
                   border: OutlineInputBorder(
@@ -114,14 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   DropdownMenuItem(value: 'parent', child: Text('👴 Parent (Diabetic)')),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    _selectedTarget = value!;
-                  });
+                  if (value != null) {
+                    viewModel.setTarget(value);
+                  }
                 },
               ),
               const SizedBox(height: 16),
-              
-              // Food Input
+
+              // Food Input Field
               TextField(
                 controller: _foodController,
                 decoration: InputDecoration(
@@ -136,13 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () => _foodController.clear(),
                   ),
                 ),
-                onSubmitted: (_) => _checkFood(),
+                onSubmitted: (_) => _onAnalyze(),
               ),
               const SizedBox(height: 24),
-              
-              // Scan Button
+
+              // Action Button
               ElevatedButton(
-                onPressed: _isLoading ? null : _checkFood,
+                onPressed: scanState.isLoading ? null : _onAnalyze,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF10B981),
                   foregroundColor: Colors.white,
@@ -152,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: _isLoading
+                child: scanState.isLoading
                     ? const SizedBox(
                         height: 20,
                         width: 20,
@@ -166,11 +140,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
-              
+
               const SizedBox(height: 32),
-              
-              // Result Area
-              if (_error.isNotEmpty)
+
+              // Error Feedback
+              if (scanState.hasError)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -179,19 +153,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     border: Border.all(color: const Color(0xFFFCA5A5)),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          _error,
+                          scanState.errorMessage!,
                           style: const TextStyle(color: Color(0xFFB91C1C)),
                         ),
                       ),
                     ],
                   ),
-                )
-              else if (_verdict.isNotEmpty)
+                ),
+
+              // Verdict Result Feedback
+              if (scanState.hasResult)
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -200,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -209,20 +186,44 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'AI Verdict:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                          letterSpacing: 0.8,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'AI VERDICT',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF64748B),
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          if (scanState.result!.toolsUsed.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '${scanState.result!.toolsUsed.length} tools called',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _verdict,
+                        scanState.result!.verdict,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15.5,
                           height: 1.5,
                           color: Color(0xFF1E293B),
                         ),

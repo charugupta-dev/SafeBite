@@ -1,46 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import '../models/food_scan_result.dart';
 
-class SummarizeResult {
-  final bool success;
-  final String url;
-  final String summary;
-
-  SummarizeResult({required this.success, required this.url, required this.summary});
-  factory SummarizeResult.fromJson(Map<String, dynamic> json) => SummarizeResult(
-      success: json['success'] as bool? ?? true,
-      url: json['url'] as String? ?? '',
-      summary: json['summary'] as String? ?? '');
-}
-
-class AgentResult {
-  final bool success;
-  final String reply;
-  final List<String> toolsUsed;
-
-  AgentResult({required this.success, required this.reply, required this.toolsUsed});
-  factory AgentResult.fromJson(Map<String, dynamic> json) => AgentResult(
-      success: json['success'] as bool? ?? true,
-      reply: json['reply'] as String? ?? '',
-      toolsUsed: (json['tools_used'] as List<dynamic>? ?? []).map((e) => e.toString()).toList());
-}
-
-class FoodScanResult {
-  final bool success;
-  final String verdict;
-  final List<String> toolsUsed;
-
-  FoodScanResult({required this.success, required this.verdict, required this.toolsUsed});
-  
-  factory FoodScanResult.fromJson(Map<String, dynamic> json) {
-    return FoodScanResult(
-      success: json['success'] as bool? ?? true,
-      verdict: json['verdict'] as String? ?? '',
-      toolsUsed: (json['tools_used'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
-    );
-  }
-}
+final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
 
 class ApiService {
   static const String defaultBaseUrl = 'http://127.0.0.1:8000';
@@ -80,7 +44,7 @@ class ApiService {
         throw Exception(errorMessage);
       }
     } on SocketException {
-      throw Exception('Cannot reach Python backend. Please start the FastAPI server.');
+      throw Exception('Cannot reach Python backend. Please ensure the server is running on port 8000.');
     } on http.ClientException {
       throw Exception('Connection failed. Please ensure the Python API server is running.');
     } catch (e) {
@@ -88,8 +52,4 @@ class ApiService {
       throw Exception('An unexpected error occurred: $e');
     }
   }
-
-  // Keeping old methods so the code doesn't break
-  Future<SummarizeResult> summarizeUrl(String url) async { return SummarizeResult(success: true, url: '', summary: ''); }
-  Future<AgentResult> askAgent(String message) async { return AgentResult(success: true, reply: '', toolsUsed: []); }
 }
