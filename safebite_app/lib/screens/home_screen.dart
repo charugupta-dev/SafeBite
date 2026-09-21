@@ -1,9 +1,56 @@
 import 'package:flutter/material.dart';
-import 'day1_summarizer_screen.dart';
-import 'day2_shop_screen.dart';
+import '../services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController _foodController = TextEditingController();
+  final ApiService _apiService = ApiService();
+
+  String _selectedTarget = 'baby'; // default target
+  bool _isLoading = false;
+  String _verdict = '';
+  String _error = '';
+
+  Future<void> _checkFood() async {
+    if (_foodController.text.trim().isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+      _verdict = '';
+      _error = '';
+    });
+
+    try {
+      final result = await _apiService.checkFood(
+        _foodController.text,
+        _selectedTarget,
+      );
+      
+      setState(() {
+        _verdict = result.verdict;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _foodController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,10 +58,10 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome, color: Color(0xFF6366F1)),
+            Icon(Icons.shield, color: Color(0xFF10B981)),
             SizedBox(width: 8),
             Text(
-              'AI Lab',
+              'Safebite',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
           ],
@@ -27,183 +74,162 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(18.0),
-          children: [
-            // Welcome Header
-            const Text(
-              'AI Engineering Projects',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF0F172A),
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Interactive mobile implementations of your AI engineering lessons.',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF64748B),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Card 1: Day 1 AI Web Summarizer
-            _buildProjectCard(
-              context,
-              dayLabel: 'Day 1',
-              title: 'AI Web Summarizer',
-              badge: 'Scraping • LLM Prompting',
-              badgeColor: const Color(0xFFE0E7FF),
-              badgeTextColor: const Color(0xFF4338CA),
-              description:
-                  'Input any website URL to scrape its contents and generate a structured markdown summary.',
-              icon: Icons.language,
-              iconColor: const Color(0xFF6366F1),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const Day1SummarizerScreen()),
-                );
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // Card 2: Day 2 Smart Shop Assistant
-            _buildProjectCard(
-              context,
-              dayLabel: 'Day 2',
-              title: 'Smart Shop Assistant',
-              badge: 'Tool Calling • Agents',
-              badgeColor: const Color(0xFFFEF3C7),
-              badgeTextColor: const Color(0xFFB45309),
-              description:
-                  'Chat with an autonomous AI shopping agent that executes get_price tools in real-time.',
-              icon: Icons.storefront_outlined,
-              iconColor: const Color(0xFFD97706),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const Day2ShopScreen()),
-                );
-              },
-            ),
-
-            const SizedBox(height: 30),
-
-            // Footer note
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline, size: 20, color: Color(0xFF64748B)),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Both apps connect to your local Python FastAPI backend at http://127.0.0.1:8000',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF475569), height: 1.4),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProjectCard(
-    BuildContext context, {
-    required String dayLabel,
-    required String title,
-    required String badge,
-    required Color badgeColor,
-    required Color badgeTextColor,
-    required String description,
-    required IconData icon,
-    required Color iconColor,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(18.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: iconColor, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          dayLabel.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.8,
-                            color: iconColor,
-                          ),
-                        ),
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF94A3B8)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  badge,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: badgeTextColor,
-                  ),
+              const Text(
+                'Check Food Safety',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 13.5,
+              const SizedBox(height: 8),
+              const Text(
+                'Enter a food item and select who is eating it.',
+                style: TextStyle(
+                  fontSize: 14,
                   color: Color(0xFF64748B),
-                  height: 1.45,
                 ),
               ),
+              const SizedBox(height: 24),
+              
+              // Target Selection
+              DropdownButtonFormField<String>(
+                value: _selectedTarget,
+                decoration: InputDecoration(
+                  labelText: 'Who is eating?',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'baby', child: Text('👶 Baby (8 months)')),
+                  DropdownMenuItem(value: 'me', child: Text('👩 Me (Lactose Intolerant)')),
+                  DropdownMenuItem(value: 'parent', child: Text('👴 Parent (Diabetic)')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedTarget = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Food Input
+              TextField(
+                controller: _foodController,
+                decoration: InputDecoration(
+                  labelText: 'Food item (e.g. banana, chocolate)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => _foodController.clear(),
+                  ),
+                ),
+                onSubmitted: (_) => _checkFood(),
+              ),
+              const SizedBox(height: 24),
+              
+              // Scan Button
+              ElevatedButton(
+                onPressed: _isLoading ? null : _checkFood,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Analyze Safety',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Result Area
+              if (_error.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _error,
+                          style: const TextStyle(color: Color(0xFFB91C1C)),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (_verdict.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'AI Verdict:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _verdict,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),

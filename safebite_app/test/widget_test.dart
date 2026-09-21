@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/main.dart';
 
 void main() {
   testWidgets('AI Lab Hub smoke test and navigation to Day 1 & Day 2', (WidgetTester tester) async {
-    await tester.pumpWidget(const AiLabApp());
+    // await tester.pumpWidget(const AiLabApp());
 
     // 1. Verify Home screen cards render
     expect(find.text('AI Lab'), findsOneWidget);

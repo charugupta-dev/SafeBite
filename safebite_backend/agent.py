@@ -29,9 +29,9 @@ FOOD_DB = {
 }
 
 PROFILES_DB = {
-    "baby": "Age: 8 months. Rules: STRICTLY NO added sugar, NO caffeine, NO honey, NO artificial flavors. Only soft natural foods.",
+    "baby": "Age: 13 months. Rules: STRICTLY NO added sugar, NO caffeine, NO honey, NO artificial flavors. Only soft natural foods.",
     "parent": "Age: 65 years. Rules: Diabetic and high blood pressure. Must have low sugar and low sodium.",
-    "me": "Age: 30 years. Rules: Lactose intolerant. No dairy."
+    "me": "Age: 30 years. Rules: Vegan by choice. No dairy."
 }
 
 # --- TOOL FUNCTIONS ---

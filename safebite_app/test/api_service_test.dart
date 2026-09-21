@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/services/api_service.dart';
+import 'package:safebite_app/services/api_service.dart';
 
 void main() {
   group('SummarizeResult', () {

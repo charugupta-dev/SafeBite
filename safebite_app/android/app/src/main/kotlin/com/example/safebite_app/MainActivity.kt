@@ -1,4 +1,4 @@
-package com.ai.learning.safebite_app
+package com.example.safebite_app
 
 import io.flutter.embedding.android.FlutterActivity
 

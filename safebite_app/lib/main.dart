@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const AiLabApp());
+  runApp(const SafebiteApp());
 }
 
-class AiLabApp extends StatelessWidget {
-  const AiLabApp({super.key});
+class SafebiteApp extends StatelessWidget {
+  const SafebiteApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI Lab',
+      title: 'Safebite',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1), // Indigo
+          seedColor: const Color(0xFF10B981), // Green for health/safety
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
