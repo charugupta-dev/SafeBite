@@ -15,18 +15,32 @@ class ApiService {
       : baseUrl = baseUrl ?? defaultBaseUrl,
         client = client ?? http.Client();
 
-  Future<FoodScanResult> checkFood(String food, String target) async {
+  Future<FoodScanResult> checkFood(
+    String food,
+    String target, {
+    int ageMonths = 8,
+    String? ageRange,
+  }) async {
     final cleanFood = food.trim();
     if (cleanFood.isEmpty) throw Exception('Please enter a food item');
 
     final endpoint = Uri.parse('$baseUrl/check-food');
 
     try {
+      final payload = <String, dynamic>{
+        'food': cleanFood,
+        'target': target,
+        'age_months': ageMonths,
+      };
+      if (ageRange != null && ageRange.isNotEmpty) {
+        payload['age_range'] = ageRange;
+      }
+
       final response = await client
           .post(
             endpoint,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'food': cleanFood, 'target': target}),
+            body: jsonEncode(payload),
           )
           .timeout(const Duration(seconds: 45));
 

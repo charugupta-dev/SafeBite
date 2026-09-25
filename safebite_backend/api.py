@@ -1,3 +1,4 @@
+from typing import Optional
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +23,9 @@ app.add_middleware(
 
 class FoodScanRequest(BaseModel):
     food: str
-    target: str
+    target: str = "baby"
+    age_months: int = 13
+    age_range: Optional[str] = None
 
 
 class FoodScanResponse(BaseModel):
@@ -40,12 +43,20 @@ def health_check():
 def check_food_endpoint(req: FoodScanRequest):
     food = req.food.strip()
     target = req.target.strip()
+    age_months = req.age_months
+    age_range = req.age_range
     
-    if not food or not target:
-        raise HTTPException(status_code=400, detail="Food and target cannot be empty")
+    if not food:
+        raise HTTPException(status_code=400, detail="Food cannot be empty")
 
     try:
-        data = analyze_food_safety(food, target, return_metadata=True)
+        data = analyze_food_safety(
+            food,
+            target,
+            age_months=age_months,
+            age_range=age_range,
+            return_metadata=True,
+        )
         return FoodScanResponse(
             success=True,
             verdict=data.get("content") or "",

@@ -1,0 +1,153 @@
+{
+  "toddler_hazard_database": {
+    "microbiological_and_pathogens": [
+      {
+        "standard_name": "Honey",
+        "aliases": ["raw honey", "manuka honey", "honey powder"],
+        "hazard": "Contains Clostridium botulinum spores causing infant botulism.",
+        "unsafe_under_months": 12,
+        "authority": "CDC, AAP"
+      },
+      {
+        "standard_name": "Unpasteurized Milk",
+        "aliases": ["raw milk", "raw dairy"],
+        "hazard": "High risk of E. coli, Salmonella, and Listeria infections.",
+        "unsafe_under_months": 60,
+        "authority": "CDC, FDA"
+      },
+      {
+        "standard_name": "Unpasteurized Juice",
+        "aliases": ["raw juice", "fresh squeezed unpasteurized"],
+        "hazard": "Bacterial contamination risk without heat treatment.",
+        "unsafe_under_months": 60,
+        "authority": "FDA"
+      }
+    ],
+    "stimulants_and_neurotoxins": [
+      {
+        "standard_name": "Caffeine",
+        "aliases": ["coffee extract", "green tea extract", "black tea extract", "guarana", "yerba mate"],
+        "hazard": "Severe sleep disruption, elevated heart rate, neurological effects.",
+        "unsafe_under_months": 144,
+        "authority": "AAP"
+      },
+      {
+        "standard_name": "High-Mercury Fish",
+        "aliases": ["swordfish", "shark", "king mackerel", "tilefish", "marlin"],
+        "hazard": "Severe neurotoxin affecting brain development.",
+        "unsafe_under_months": 60,
+        "authority": "FDA, EPA"
+      }
+    ],
+    "added_sugars_and_syrups": [
+      {
+        "standard_name": "High Fructose Corn Syrup",
+        "aliases": ["HFCS", "corn syrup", "corn syrup solids"],
+        "hazard": "Obesity, metabolic disruption, tooth decay.",
+        "unsafe_under_months": 24,
+        "authority": "WHO, AAP"
+      },
+      {
+        "standard_name": "Cane Sugar",
+        "aliases": ["cane juice", "evaporated cane juice", "sucrose", "brown rice syrup", "agave nectar", "dextrose", "maltose", "maltodextrin", "fruit juice concentrate", "molasses"],
+        "hazard": "Nutritional displacement, severe blood sugar spikes.",
+        "unsafe_under_months": 24,
+        "authority": "WHO, AAP"
+      }
+    ],
+    "artificial_sweeteners": [
+      {
+        "standard_name": "Sucralose",
+        "aliases": ["Splenda", "E955"],
+        "hazard": "Gut microbiome disruption.",
+        "unsafe_under_months": 36,
+        "authority": "WHO"
+      },
+      {
+        "standard_name": "Aspartame",
+        "aliases": ["NutraSweet", "Equal", "E951"],
+        "hazard": "Metabolic disruption.",
+        "unsafe_under_months": 36,
+        "authority": "WHO"
+      }
+    ],
+    "dangerous_fats": [
+      {
+        "standard_name": "Partially Hydrogenated Oils",
+        "aliases": ["trans fat", "partially hydrogenated soybean oil", "partially hydrogenated vegetable oil"],
+        "hazard": "Increases bad cholesterol, cardiovascular risk.",
+        "unsafe_under_months": 999,
+        "authority": "FDA (Banned)"
+      }
+    ],
+    "synthetic_preservatives_and_nitrates": [
+      {
+        "standard_name": "Sodium Nitrite",
+        "aliases": ["E250", "sodium nitrate", "E251", "celery powder", "celery juice extract", "cultured celery extract"],
+        "hazard": "Carcinogenic properties, thyroid disruption.",
+        "unsafe_under_months": 36,
+        "authority": "AAP"
+      },
+      {
+        "standard_name": "Sodium Benzoate",
+        "aliases": ["E211", "benzoic acid"],
+        "hazard": "Linked to hyperactivity in children.",
+        "unsafe_under_months": 36,
+        "authority": "AAP"
+      },
+      {
+        "standard_name": "Carrageenan",
+        "aliases": ["E407", "Irish moss extract"],
+        "hazard": "Linked to gastrointestinal inflammation and digestive distress in young toddlers.",
+        "unsafe_under_months": 24,
+        "authority": "General Pediatric Guidance"
+      }
+    ],
+    "artificial_colors": [
+      {
+        "standard_name": "Red 40",
+        "aliases": ["Allura Red AC", "E129", "FD&C Red No. 40", "CI 16035"],
+        "hazard": "Linked to neurobehavioral issues and hyperactivity.",
+        "unsafe_under_months": 36,
+        "authority": "AAP"
+      },
+      {
+        "standard_name": "Yellow 5",
+        "aliases": ["Tartrazine", "E102", "FD&C Yellow No. 5", "Yellow 6", "Sunset Yellow FCF", "E110", "Blue 1", "Brilliant Blue FCF", "E133"],
+        "hazard": "Linked to neurobehavioral issues and hyperactivity.",
+        "unsafe_under_months": 36,
+        "authority": "AAP"
+      }
+    ],
+    "physical_choking_hazards": [
+      {
+        "standard_name": "Marshmallows",
+        "aliases": ["marshmallow creme", "mini marshmallows"],
+        "hazard": "Sticky and expands in airway. Cannot be dislodged easily by Heimlich.",
+        "unsafe_under_months": 60,
+        "authority": "AAP, CDC"
+      },
+      {
+        "standard_name": "Whole Nuts",
+        "aliases": ["peanuts", "almonds", "cashews", "macadamia nuts", "whole seeds"],
+        "hazard": "Perfect size to block airway.",
+        "unsafe_under_months": 48,
+        "authority": "AAP, CDC"
+      },
+      {
+        "standard_name": "Popcorn",
+        "aliases": ["popped corn"],
+        "hazard": "Kernels can be inhaled into lungs causing severe infection, or block airway.",
+        "unsafe_under_months": 48,
+        "authority": "AAP, CDC"
+      },
+      {
+        "standard_name": "Hard or Sticky Candy",
+        "aliases": ["peppermint", "lollipops", "jelly beans", "gummies", "chewing gum", "caramel"],
+        "hazard": "Easily swallowed whole and lodges in airway.",
+        "unsafe_under_months": 60,
+        "authority": "AAP, CDC"
+      }
+    ]
+  }
+}

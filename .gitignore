@@ -24,3 +24,10 @@ flagged/
 *.log
 build/
 
+# Chroma vector database & AI scratch files
+chroma_db/
+**/chroma_db/
+.superpowers/
+**/.superpowers/
+
+

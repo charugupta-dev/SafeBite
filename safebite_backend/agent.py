@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Optional
 from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -26,38 +27,48 @@ else:
     raise ValueError("No API key found. Add OPENAI_API_KEY or GROQ_API_KEY to your .env file.")
 
 # --- HEALTH PROFILES ---
-PROFILES_DB = {
-    "baby": "Age: 8 months. Rules: STRICTLY NO added sugar, NO caffeine, NO honey, NO artificial flavors/sweeteners. High choking risk: foods must be soft/pureed.",
-    "parent": "Age: 65 years. Rules: Diabetic and high blood pressure. Must have low sugar and low sodium.",
-    "me": "Age: 30 years. Rules: Lactose intolerant. No dairy."
-}
+def get_health_profile(target: str, age_months: int = 8, age_range: Optional[str] = None):
+    target_clean = target.lower()
+    if "baby" in target_clean or "child" in target_clean or "toddler" in target_clean:
+        age_desc = f"Age Range: {age_range} (approx {age_months} months)" if age_range else f"Age: {age_months} months"
+        return (
+            f"Subject: Infant/Toddler, {age_desc}.\n"
+            f"Official Pediatric Safety Rules (AAP, CDC, WHO):\n"
+            f"- Under 12 months: Strictly NO honey (infant botulism risk).\n"
+            f"- Under 24 months: Strictly NO added sugars/syrups (Cane sugar, HFCS, corn syrup, molasses).\n"
+            f"- Under 36 months: Strictly NO artificial sweeteners (Sucralose, Aspartame), synthetic preservatives (Sodium Benzoate, Sodium Nitrite), or artificial dyes (Red 40, Yellow 5 / Tartrazine).\n"
+            f"- Under 48-60 months: Strictly NO whole nuts, popcorn, marshmallows, or hard sticky candies (choking hazards).\n"
+            f"- Any age: NO partially hydrogenated oils (trans fats), NO unpasteurized milk/juice.\n"
+            f"- Safe: Plain whole fruits, vegetables, grains, purees without added sugars or additives."
+        )
+    elif "parent" in target_clean:
+        return "Age: 65 years. Rules: Diabetic and high blood pressure. Low refined sugar, low sodium."
+    elif "me" in target_clean:
+        return "Age: 30 years. Rules: Lactose intolerant. No dairy."
+    return "Healthy individual with no specific restrictions."
 
 # --- TOOL FUNCTIONS ---
 def query_food_guidelines_rag(query: str):
-    """Searches official PDF guidelines (WHO, CDC, AAP) in ChromaDB."""
+    """Searches official PDF and JSON hazard guidelines (WHO, CDC, AAP) in ChromaDB."""
     print(f"🔧 Tool called: query_food_guidelines_rag('{query}')")
-    results = retrieve_relevant_guidelines(query, k=2)
+    results = retrieve_relevant_guidelines(query, k=4)
     if not results:
         return "No specific document guidelines found."
     
     formatted = []
     for r in results:
-        formatted.append(f"[{r['source']} - Page {r['page']}]:\n{r['content']}")
+        formatted.append(f"[{r['source']}]:\n{r['content']}")
     return "\n\n".join(formatted)
-
-def get_health_profile(target: str):
-    print(f"🔧 Tool called: get_health_profile('{target}')")
-    return PROFILES_DB.get(target.lower(), "Healthy adult with no specific restrictions.")
 
 tools = [
     {
         "type": "function",
         "function": {
             "name": "query_food_guidelines_rag",
-            "description": "Searches the official pediatric and nutritional safety library (WHO, CDC, AAP) for food safety rules, hazards, and recommendations.",
+            "description": "Searches the official pediatric and nutritional safety library (WHO, CDC, AAP, FDA) for food safety rules, hazards, aliases, and recommendations.",
             "parameters": {
                 "type": "object",
-                "properties": {"query": {"type": "string", "description": "The food item, ingredient, or safety question to search in the guidelines"}},
+                "properties": {"query": {"type": "string", "description": "The key ingredients or food items to check against safety guidelines"}},
                 "required": ["query"],
             },
         },
@@ -76,24 +87,30 @@ tools = [
     }
 ]
 
-def analyze_food_safety(food: str, target: str, return_metadata=False):
+def analyze_food_safety(food: str, target: str = "baby", age_months: int = 8, age_range: Optional[str] = None, return_metadata=False):
     system_prompt = (
-        "You are Safebite, an AI Food Safety Assistant backed by medical and clinical guidelines.\n"
-        "1. Always use 'query_food_guidelines_rag' to search your library for the food item and 'get_health_profile' for the person's rules.\n"
-        "2. Answer with a clear '🟢 SAFE', '🟡 CAUTION', or '🔴 UNSAFE' on the very first line.\n"
-        "3. Provide 2-3 short bullet points citing facts directly from the retrieved guidelines (mentioning WHO or CDC/AAP if applicable).\n"
-        "4. If there is a choking hazard or preparation instruction (like cutting grapes), explicitly mention it."
+        "You are Safebite, an evidence-based AI Food Safety Assistant backed by medical guidelines (AAP, CDC, WHO, FDA).\n"
+        "1. In 1 single tool call to 'query_food_guidelines_rag', query all suspect hazard ingredients together (e.g. 'sugar salt honey additives in cereal'). Do NOT make repeated sequential tool calls for every ingredient.\n"
+        "2. After getting the guideline results, IMMEDIATELY formulate your final evaluation.\n"
+        "3. LINE 1 OF YOUR RESPONSE MUST BE THE OVERALL VERDICT BADGE:\n"
+        "   - '🔴 UNSAFE' if ANY ingredient is hazardous/prohibited for this age (e.g. honey <12 mo, added sugars/syrups <24 mo, dyes <36 mo, choking hazards).\n"
+        "   - '🟡 CAUTION' if conditionally safe with special preparation.\n"
+        "   - '🟢 SAFE' if all ingredients are safe and appropriate for this age.\n"
+        "4. Follow with clear, parent-friendly bullet points explaining each ingredient, quoting hazards and health authorities (CDC, AAP, WHO, FDA).\n"
+        "5. Keep it direct and factual."
     )
     
-    user_prompt = f"Is {food} safe for {target}?"
+    age_str = f"{age_range} (approx {age_months} months)" if age_range else f"Age: {age_months} months"
+    user_prompt = f"Evaluate these ingredients: '{food}' for {target} ({age_str})."
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ]
     
     tools_used = []
+    final_content = ""
     
-    for _ in range(3):
+    for _ in range(4):
         response = client.chat.completions.create(
             model=model_name, 
             messages=messages, 
@@ -115,21 +132,30 @@ def analyze_food_safety(food: str, target: str, return_metadata=False):
                 elif call.function.name == "get_health_profile":
                     target_arg = args.get("target", target)
                     tools_used.append(f"get_health_profile('{target_arg}')")
-                    result = get_health_profile(target_arg)
+                    result = get_health_profile(target_arg, age_months=age_months)
                 else:
                     result = "Unknown tool."
                     
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
         else:
+            final_content = msg.content or ""
             break
 
+    if not final_content:
+        # Prompt model to produce final answer if it exhausted tool loop
+        messages.append({"role": "user", "content": "Please provide your final safety verdict and explanation now based on the findings above."})
+        res = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            tools=tools,
+            temperature=0.1
+        )
+        final_content = res.choices[0].message.content or ""
+
     if return_metadata:
-        return {"content": msg.content or "", "tools_used": tools_used}
-    return msg.content
+        return {"content": final_content, "tools_used": tools_used}
+    return final_content
 
 if __name__ == "__main__":
-    print("Testing chocolate for baby:")
-    print(analyze_food_safety("chocolate", "baby"))
-    print("\n---------------------------\n")
-    print("Testing whole grapes for baby:")
-    print(analyze_food_safety("whole grapes", "baby"))
+    print("Testing mashed apple for baby:")
+    print(analyze_food_safety("mashed apple", "baby"))
