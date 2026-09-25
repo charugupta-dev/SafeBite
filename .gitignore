@@ -29,5 +29,7 @@ chroma_db/
 **/chroma_db/
 .superpowers/
 **/.superpowers/
+docs/superpowers/
+**/superpowers/
 
 
